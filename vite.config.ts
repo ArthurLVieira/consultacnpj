@@ -12,10 +12,10 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      "api/cnpj": {
-        target: "http://publica.cnpj.ws",
+      "/api/cnpj": {
+        target: "https://publica.cnpj.ws",
         changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/api\/cnpj/, "cnpj"),
+        rewrite: (path) => path.replace(/^\/api\/cnpj/, "/cnpj"),
       },
     },
   },

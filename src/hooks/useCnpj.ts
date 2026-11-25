@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { CnpjApiError } from "../services/cnpjService";
+import { useCallback, useRef, useState } from "react";
+import { CnpjApiError, fetchCnpj } from "../services/cnpjService";
 import { type CnpjResponse } from "../types/cnpj";
 
 type Status = "idle" | "loading" | "success" | "error";
@@ -23,4 +23,34 @@ export function useCnpj() {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  const search = useCallback(async (cnpj: string) => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setStatus("loading");
+    setError(null);
+    setData(null);
+
+    try {
+      const result = await fetchCnpj(cnpj, controller.signal);
+      if (controller.signal.aborted) return;
+      setData(result);
+      setStatus("success");
+    } catch (err) {
+      if (controller.signal.aborted) return;
+      setError(toFriendlyMessage(err));
+      setStatus("error");
+    }
+  }, []);
+
+  const rest = useCallback(() => {
+    abortRef.current?.abort();
+    setData(null);
+    setError(null);
+    setStatus("idle");
+  }, []);
+
+  return { data, status, error, search, rest };
 }
